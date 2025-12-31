@@ -49,6 +49,23 @@ jobs:
           echo "PASTPUZZLE_API_KEY sha256: $(printf '%s' \"$PASTPUZZLE_API_KEY\" | sha256sum | cut -d' ' -f1)"
           echo "PASTPUZZLE_AUTHORIZATION sha256: $(printf '%s' \"$PASTPUZZLE_AUTHORIZATION\" | sha256sum | cut -d' ' -f1)"
 
+      - name: Debug Supabase request (curl status only)
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "$PASTPUZZLE_JSON_URL" \
+            -H "Content-Type: application/json" \
+            -H "Pragma: no-cache" \
+            -H "Accept: */*" \
+            -H "Cache-Control: no-cache" \
+            -H "Origin: https://www.pastpuzzle.de" \
+            -H "Referer: https://www.pastpuzzle.de/" \
+            -H "x-client-info: supabase-js-web/2.57.4" \
+            -H "content-profile: public" \
+            -H "apikey: $PASTPUZZLE_API_KEY" \
+            -H "authorization: Bearer $PASTPUZZLE_AUTHORIZATION" \
+            --data-raw "$PASTPUZZLE_JSON_BODY")
+          echo "Supabase status: $status"
+
       - name: Update feed
         run: uv run python -m src.main
 
