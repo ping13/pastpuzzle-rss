@@ -99,13 +99,8 @@ def _build_headers() -> dict[str, str]:
         headers["authorization"] = f"Bearer {api_key}"
     raw_headers = os.getenv("PASTPUZZLE_HEADERS")
     if raw_headers:
-        try:
-            extra_headers = json.loads(raw_headers)
-        except json.JSONDecodeError as exc:
-            raise ValueError("PASTPUZZLE_HEADERS must be valid JSON.") from exc
-        if not isinstance(extra_headers, dict):
-            raise ValueError("PASTPUZZLE_HEADERS must be a JSON object.")
-        headers.update({str(k): str(v) for k, v in extra_headers.items()})
+        extra_headers = _parse_header_env(raw_headers)
+        headers.update(extra_headers)
     return headers
 
 
@@ -120,6 +115,45 @@ def _build_body(date: Optional[str]) -> dict[str, Any]:
             raise ValueError("PASTPUZZLE_JSON_BODY must be a JSON object.")
         return body
     return {"date": date} if date else {}
+
+
+def _parse_header_env(raw_headers: str) -> dict[str, str]:
+    raw = raw_headers.strip()
+    if not raw:
+        return {}
+    candidates = [raw]
+    if raw.startswith(("\"", "'")) and raw.endswith(("\"", "'")):
+        candidates.append(raw[1:-1])
+    try:
+        candidates.append(raw.encode("utf-8").decode("unicode_escape"))
+    except UnicodeDecodeError:
+        pass
+
+    for candidate in candidates:
+        try:
+            parsed = json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(parsed, str):
+            try:
+                parsed = json.loads(parsed)
+            except json.JSONDecodeError:
+                continue
+        if isinstance(parsed, dict):
+            return {str(k): str(v) for k, v in parsed.items()}
+
+    parsed_pairs: dict[str, str] = {}
+    for part in re.split(r",\s*|\n+", raw):
+        if not part.strip() or ":" not in part:
+            continue
+        key, value = part.split(":", 1)
+        parsed_pairs[key.strip()] = value.strip().strip("\"'")
+    if parsed_pairs:
+        return parsed_pairs
+
+    raise ValueError(
+        "PASTPUZZLE_HEADERS must be valid JSON or key:value pairs."
+    )
 
 
 def _discover_json_url(html: str, base_url: str) -> Optional[str]:
