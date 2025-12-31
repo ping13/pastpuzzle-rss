@@ -1,0 +1,40 @@
+{
+  "id": 229,
+  "year": 9,
+  "tips": [
+    {
+      "link": "https://en.wikipedia.org/wiki/Liu_Xin_(scholar)",
+      "text": "Ein Jahr vor der hier gesuchten Jahreszahl schatzt der Astronom Liu Xin die Lange eines Jahres auf 365,25016 Tage und vertut sich um lediglich 11 Minuten zum heute gultigen Wert.",
+      "type": "wiki",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/46._Diagram_of_motions_of_earth_and_Mars%2C_1926_%2822721972696%29.jpg/813px-46._Diagram_of_motions_of_earth_and_Mars%2C_1926_%2822721972696%29.jpg",
+      "title": "Englischer Wikipedia-Eintrag zu Liu Xin",
+      "copyright": null
+    },
+    {
+      "link": "https://www1.wdr.de/radio/wdr5/sendungen/zeitzeichen/zeitzeichen-todestag-titus-flavius-vespasianus-100.html",
+      "text": "Geburt des spateren Kaisers Titus Flavius Vespasianus, unter dessen Regierung der Bau des Kolosseums beginnen wird.",
+      "type": "podcast",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Keizer_Vespasianus_te_paard_Verspasianvs_%28titel_op_object%29_Romeinse_keizers_te_paard_%28serietitel%29_Imperatorvm_XII._A_svetonio_descriptorvm_effigies_resqve_gestae_%28serietitel%29%2C_RP-P-1963-144.jpg/710px-thumbnail.jpg",
+      "title": "Zeitzeichen - Uber Kaiser Titus Flavius Vespasianus ",
+      "copyright": null
+    },
+    {
+      "link": "https://www.deutschlandfunknova.de/beitrag/germanien-barbaren-gegen-r%C3%B6mer---die-varusschlacht",
+      "text": "Die Germanen besiegen die Romer in der Schlacht im Teutoburger Wald. Eine der bedeutendsten Niederlagen in der romischen Geschichte stoppt die Eroberung Germaniens.",
+      "type": "podcast",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Hermannsdenkmal_1900.jpg/745px-Hermannsdenkmal_1900.jpg",
+      "title": "Barbaren gegen Romer - die Varusschlacht",
+      "copyright": null
+    },
+    {
+      "link": "https://de.wikipedia.org/wiki/Wang_Mang",
+      "text": "Beginn der kurzesten Herrschaftsphase im Kaiserreich China. Die Xin-Dynastie lost die westliche Han-Dynastie ab.",
+      "type": "wiki",
+      "image": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Hangaozu.jpg",
+      "title": "Wang Mang",
+      "copyright": null
+    }
+  ],
+  "name": "212",
+  "locale": "de"
+}

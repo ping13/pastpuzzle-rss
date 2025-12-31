@@ -1,0 +1,13 @@
+{
+  "data": {
+    "date": "2024-01-03",
+    "events": [
+      "Event one from JSON",
+      "Event two from JSON",
+      "Event three from JSON",
+      "Event four from JSON"
+    ],
+    "answer_year": 1999,
+    "source_url": "https://www.pastpuzzle.de/puzzle/2024-01-03"
+  }
+}
