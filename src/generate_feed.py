@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any
 import xml.etree.ElementTree as ET
 
+from dotenv import load_dotenv
+
 from .archive import load_archive
 
 
@@ -19,6 +21,7 @@ ET.register_namespace("atom", ATOM_NS)
 
 
 def generate_feed(archive_path: Path = Path("data/archive.json")) -> str:
+    load_dotenv()
     feed_days = int(os.getenv("FEED_DAYS", "30"))
     base_url = os.getenv("PASTPUZZLE_URL", "https://www.pastpuzzle.de/")
     feed_url = os.getenv("FEED_URL", "")
