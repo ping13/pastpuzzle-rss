@@ -38,7 +38,11 @@ Makefile shortcuts:
 ```bash
 make run
 make test
+make publish
 ```
+
+The `publish` target copies `docs/feed.xml` to `PUBLISH_DIR` (read from the environment
+or `.env`).
 
 To run tests directly:
 
