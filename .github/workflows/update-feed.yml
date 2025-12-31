@@ -45,6 +45,8 @@ jobs:
           echo "PASTPUZZLE_API_KEY length: ${#PASTPUZZLE_API_KEY}"
           echo "PASTPUZZLE_AUTHORIZATION length: ${#PASTPUZZLE_AUTHORIZATION}"
           echo "PASTPUZZLE_HEADERS length: ${#PASTPUZZLE_HEADERS}"
+          echo "PASTPUZZLE_API_KEY sha256: $(printf '%s' \"$PASTPUZZLE_API_KEY\" | sha256sum | cut -d' ' -f1)"
+          echo "PASTPUZZLE_AUTHORIZATION sha256: $(printf '%s' \"$PASTPUZZLE_AUTHORIZATION\" | sha256sum | cut -d' ' -f1)"
 
       - name: Update feed
         run: uv run python -m src.main

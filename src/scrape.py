@@ -103,8 +103,8 @@ def _build_headers() -> dict[str, str]:
             extra_headers.pop("Authorization", None)
             extra_headers.pop("apikey", None)
         headers.update(extra_headers)
-    api_key = os.getenv("PASTPUZZLE_API_KEY")
-    authorization = os.getenv("PASTPUZZLE_AUTHORIZATION")
+    api_key = api_key.strip().strip("\"'") if api_key else None
+    authorization = authorization.strip().strip("\"'") if authorization else None
     if api_key:
         headers["apikey"] = api_key
         if not authorization:
