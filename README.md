@@ -76,3 +76,6 @@ endpoint:
 The feed is written to `docs/feed.xml` for GitHub Pages. Enable Pages on the `main`
 branch and point it at the `/docs` folder. Adjust `PASTPUZZLE_URL` if you need the
 published URL in the feed.
+
+The repo includes a placeholder cover art at `docs/cover.png`. Replace it with your own
+1400x1400 (or larger) square image and update `PODCAST_IMAGE_URL` if you change the path.

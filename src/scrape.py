@@ -108,7 +108,6 @@ def _build_headers() -> dict[str, str]:
         authorization = os.getenv("PASTPUZZLE_AUTHORIZATION")
         if api_key or authorization:
             extra_headers.pop("authorization", None)
-            extra_headers.pop("Authorization", None)
             extra_headers.pop("apikey", None)
         headers.update(extra_headers)
     api_key = api_key.strip().strip("\"'") if api_key else None
@@ -178,7 +177,7 @@ def _parse_header_env(raw_headers: str) -> dict[str, str]:
 
 
 def _normalize_header_name(name: str) -> str:
-    return name.strip().strip("\"'")
+    return name.strip().strip("\"'").lower()
 
 
 def _discover_json_url(html: str, base_url: str) -> Optional[str]:
