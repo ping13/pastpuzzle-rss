@@ -24,6 +24,7 @@ jobs:
       PASTPUZZLE_AUTHORIZATION: ${{ secrets.PASTPUZZLE_API_KEY }}
       PASTPUZZLE_RESOLVE_AUDIO: "1"
       PASTPUZZLE_AUDIO_REQUIRED: "0"
+      PASTPUZZLE_DEBUG: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4

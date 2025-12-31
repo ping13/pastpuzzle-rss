@@ -79,6 +79,14 @@ def _apply_date_to_url(url: str, date: Optional[str]) -> str:
 
 def _fetch_json_payload(url: str, date: Optional[str]) -> Any:
     headers = _build_headers()
+    if os.getenv("PASTPUZZLE_DEBUG", "").lower() in {"1", "true", "yes"}:
+        print(
+            f"DEBUG request method={os.getenv('PASTPUZZLE_JSON_METHOD','GET').upper()} url={url}"
+        )
+        print(f"DEBUG headers keys={sorted(headers.keys())}")
+        print(
+            f"DEBUG apikey length={len(headers.get('apikey',''))} authorization length={len(headers.get('authorization',''))}"
+        )
     method = os.getenv("PASTPUZZLE_JSON_METHOD", "GET").upper()
     if method not in {"GET", "POST"}:
         raise ValueError("PASTPUZZLE_JSON_METHOD must be GET or POST.")
