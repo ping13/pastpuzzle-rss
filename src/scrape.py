@@ -94,9 +94,16 @@ def _fetch_json_payload(url: str, date: Optional[str]) -> Any:
 def _build_headers() -> dict[str, str]:
     headers: dict[str, str] = {"accept": "application/json"}
     api_key = os.getenv("PASTPUZZLE_API_KEY")
+    authorization = os.getenv("PASTPUZZLE_AUTHORIZATION")
     if api_key:
         headers["apikey"] = api_key
-        headers["authorization"] = f"Bearer {api_key}"
+        if not authorization:
+            headers["authorization"] = f"Bearer {api_key}"
+    if authorization:
+        if authorization.lower().startswith("bearer "):
+            headers["authorization"] = authorization
+        else:
+            headers["authorization"] = f"Bearer {authorization}"
     raw_headers = os.getenv("PASTPUZZLE_HEADERS")
     if raw_headers:
         extra_headers = _parse_header_env(raw_headers)

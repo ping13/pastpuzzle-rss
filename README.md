@@ -35,7 +35,8 @@ python-dotenv) for local runs. See `.env.example` for a template.
 - `PASTPUZZLE_JSON_URL`: override JSON endpoint for scraping
 - `PASTPUZZLE_JSON_METHOD`: `GET` or `POST` (default: `GET`)
 - `PASTPUZZLE_JSON_BODY`: JSON object string for POST bodies
-- `PASTPUZZLE_API_KEY`: API key for endpoints that require `apikey`/`authorization`
+- `PASTPUZZLE_API_KEY`: API key for endpoints that require `apikey`
+- `PASTPUZZLE_AUTHORIZATION`: bearer token for endpoints that require `authorization`
 - `PASTPUZZLE_HEADERS`: JSON object string for extra headers
 - `PASTPUZZLE_RESOLVE_AUDIO`: set to `0` to skip resolving podcast pages to audio URLs
 - `PASTPUZZLE_AUDIO_REQUIRED`: set to `1` to fail when audio URLs are missing
@@ -57,7 +58,9 @@ For GitHub Actions, add these repository secrets so the workflow can call the Su
 endpoint:
 
 - `PASTPUZZLE_JSON_URL`
-- `PASTPUZZLE_HEADERS` (JSON string containing at least `apikey` and `authorization`)
+- `PASTPUZZLE_HEADERS` (optional JSON string for extra headers)
+- `PASTPUZZLE_API_KEY`
+- `PASTPUZZLE_AUTHORIZATION`
 
 ## GitHub Pages (optional)
 
