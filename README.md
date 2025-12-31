@@ -53,6 +53,12 @@ The workflow runs daily on a UTC schedule and on manual dispatch. It scrapes the
 updates `data/archive.json`, regenerates `docs/feed.xml`, runs tests, and commits changes if
 anything changed.
 
+For GitHub Actions, add these repository secrets so the workflow can call the Supabase
+endpoint:
+
+- `PASTPUZZLE_JSON_URL`
+- `PASTPUZZLE_HEADERS` (JSON string containing at least `apikey` and `authorization`)
+
 ## GitHub Pages (optional)
 
 The feed is written to `docs/feed.xml` for GitHub Pages. Enable Pages on the `main`

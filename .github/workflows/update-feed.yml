@@ -11,6 +11,16 @@ permissions:
 jobs:
   update-feed:
     runs-on: ubuntu-latest
+    env:
+      FEED_DAYS: "30"
+      TIMEZONE: "UTC"
+      PASTPUZZLE_URL: "https://www.pastpuzzle.de/"
+      PASTPUZZLE_JSON_URL: ${{ secrets.PASTPUZZLE_JSON_URL }}
+      PASTPUZZLE_JSON_METHOD: "POST"
+      PASTPUZZLE_JSON_BODY: "{\"timezoneoffset\":60,\"locale\":\"de\"}"
+      PASTPUZZLE_HEADERS: ${{ secrets.PASTPUZZLE_HEADERS }}
+      PASTPUZZLE_RESOLVE_AUDIO: "1"
+      PASTPUZZLE_AUDIO_REQUIRED: "0"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
