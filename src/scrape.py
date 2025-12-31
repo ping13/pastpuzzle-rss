@@ -93,6 +93,13 @@ def _fetch_json_payload(url: str, date: Optional[str]) -> Any:
 
 def _build_headers() -> dict[str, str]:
     headers: dict[str, str] = {"accept": "application/json"}
+    raw_headers = os.getenv("PASTPUZZLE_HEADERS")
+    if raw_headers:
+        extra_headers = _parse_header_env(raw_headers)
+        extra_headers.pop("authorization", None)
+        extra_headers.pop("Authorization", None)
+        extra_headers.pop("apikey", None)
+        headers.update(extra_headers)
     api_key = os.getenv("PASTPUZZLE_API_KEY")
     authorization = os.getenv("PASTPUZZLE_AUTHORIZATION")
     if api_key:
@@ -104,10 +111,6 @@ def _build_headers() -> dict[str, str]:
             headers["authorization"] = authorization
         else:
             headers["authorization"] = f"Bearer {authorization}"
-    raw_headers = os.getenv("PASTPUZZLE_HEADERS")
-    if raw_headers:
-        extra_headers = _parse_header_env(raw_headers)
-        headers.update(extra_headers)
     return headers
 
 
