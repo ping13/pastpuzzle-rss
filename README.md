@@ -38,10 +38,17 @@ python-dotenv) for local runs. See `.env.example` for a template.
 - `PASTPUZZLE_JSON_METHOD`: `GET` or `POST` (default: `GET`)
 - `PASTPUZZLE_JSON_BODY`: JSON object string for POST bodies
 - `PASTPUZZLE_API_KEY`: API key for endpoints that require `apikey`
-- `PASTPUZZLE_AUTHORIZATION`: bearer token for endpoints that require `authorization`
+- `PASTPUZZLE_AUTHORIZATION`: bearer token for endpoints that require `authorization` (defaults to API key in CI)
 - `PASTPUZZLE_HEADERS`: JSON object string for extra headers
 - `PASTPUZZLE_RESOLVE_AUDIO`: set to `0` to skip resolving podcast pages to audio URLs
 - `PASTPUZZLE_AUDIO_REQUIRED`: set to `1` to fail when audio URLs are missing
+- `FEED_URL`: public URL to `docs/feed.xml` for atom:link self
+- `PODCAST_AUTHOR`: author name for iTunes metadata
+- `PODCAST_SUMMARY`: podcast summary/description (keep > 50 characters)
+- `PODCAST_LANGUAGE`: language code (default: de)
+- `PODCAST_CATEGORY`: iTunes category (default: History)
+- `PODCAST_EXPLICIT`: iTunes explicit flag (default: no)
+- `PODCAST_IMAGE_URL`: square cover art (1400-3000 px)
 - `TIMEZONE`: only UTC is supported (default: UTC)
 
 Example:

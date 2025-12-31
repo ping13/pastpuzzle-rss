@@ -9,20 +9,64 @@ from .archive import load_archive
 
 
 FEED_PATH = Path("docs/feed.xml")
+ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
+PODCAST_NS = "https://podcastindex.org/namespace/1.0"
+ATOM_NS = "http://www.w3.org/2005/Atom"
+
+ET.register_namespace("itunes", ITUNES_NS)
+ET.register_namespace("podcast", PODCAST_NS)
+ET.register_namespace("atom", ATOM_NS)
 
 
 def generate_feed(archive_path: Path = Path("data/archive.json")) -> str:
     feed_days = int(os.getenv("FEED_DAYS", "30"))
     base_url = os.getenv("PASTPUZZLE_URL", "https://www.pastpuzzle.de/")
+    feed_url = os.getenv("FEED_URL", "")
+    author = os.getenv("PODCAST_AUTHOR", "PastPuzzle")
+    summary = os.getenv(
+        "PODCAST_SUMMARY",
+        "Daily PastPuzzle podcast feed with historical clues and audio highlights.",
+    )
+    language = os.getenv("PODCAST_LANGUAGE", "de")
+    category = os.getenv("PODCAST_CATEGORY", "History")
+    explicit = os.getenv("PODCAST_EXPLICIT", "no")
+    image_url = os.getenv("PODCAST_IMAGE_URL", "")
 
     records = load_archive(archive_path)
     selected = records[-feed_days:] if feed_days > 0 else records
+    if not image_url and selected:
+        image_url = selected[-1].get("cover_image") or ""
 
-    rss = ET.Element("rss", version="2.0")
+    rss = ET.Element(
+        "rss",
+        version="2.0",
+        attrib={
+            f"xmlns:itunes": ITUNES_NS,
+            f"xmlns:podcast": PODCAST_NS,
+            f"xmlns:atom": ATOM_NS,
+        },
+    )
     channel = ET.SubElement(rss, "channel")
     ET.SubElement(channel, "title").text = "PastPuzzle"
     ET.SubElement(channel, "link").text = base_url
-    ET.SubElement(channel, "description").text = "Daily PastPuzzle feed"
+    ET.SubElement(channel, "description").text = summary
+    ET.SubElement(channel, "language").text = language
+    if feed_url:
+        atom_link = ET.SubElement(channel, f"{{{ATOM_NS}}}link")
+        atom_link.set("href", feed_url)
+        atom_link.set("rel", "self")
+        atom_link.set("type", "application/rss+xml")
+    ET.SubElement(channel, f"{{{ITUNES_NS}}}summary").text = summary
+    ET.SubElement(channel, f"{{{ITUNES_NS}}}author").text = author
+    ET.SubElement(channel, f"{{{ITUNES_NS}}}explicit").text = explicit
+    if image_url:
+        image = ET.SubElement(channel, f"{{{ITUNES_NS}}}image")
+        image.set("href", image_url)
+    category_element = ET.SubElement(channel, f"{{{ITUNES_NS}}}category")
+    category_element.set("text", category)
+    ET.SubElement(channel, f"{{{PODCAST_NS}}}locked").text = "no"
+    if feed_url:
+        ET.SubElement(channel, f"{{{PODCAST_NS}}}guid").text = feed_url
     ET.SubElement(channel, "lastBuildDate").text = _format_rfc822(datetime.now(timezone.utc))
 
     for record in selected:
@@ -53,6 +97,9 @@ def generate_feed(archive_path: Path = Path("data/archive.json")) -> str:
             description_text = _format_description(record, podcast)
             description_element = ET.SubElement(item, "description")
             description_element.text = f"<![CDATA[{description_text}]]>"
+            ET.SubElement(item, f"{{{ITUNES_NS}}}summary").text = description_text
+            ET.SubElement(item, f"{{{ITUNES_NS}}}author").text = author
+            ET.SubElement(item, f"{{{ITUNES_NS}}}explicit").text = explicit
 
     xml_bytes = ET.tostring(rss, encoding="utf-8", xml_declaration=True)
     xml_text = xml_bytes.decode("utf-8")

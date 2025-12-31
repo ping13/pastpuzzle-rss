@@ -23,6 +23,7 @@
         "pub_date": "2020-12-30"
       }
     ],
+    "cover_image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/46._Diagram_of_motions_of_earth_and_Mars%2C_1926_%2822721972696%29.jpg/813px-46._Diagram_of_motions_of_earth_and_Mars%2C_1926_%2822721972696%29.jpg",
     "source_url": "https://shktoswxcezxdkncmskf.supabase.co/rest/v1/rpc/get_puzzle_of_the_day"
   }
 ]
