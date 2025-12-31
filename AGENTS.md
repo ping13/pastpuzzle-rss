@@ -2,11 +2,11 @@ Implement a GitHub Actions–driven podcast RSS feed generator
 for `https://www.pastpuzzle.de/` in **Python**, using **Astral `uv`**for dependency
 management and execution. The workflow scrapes the daily puzzle once per day, updates an
 on-repo JSON archive, resolves podcast audio enclosures from linked pages, regenerates
-`docs/feed.xml`, and commits changes back to the repo for GitHub Pages.
+`feed.xml`, and commits changes back to the repo.
 
 ## Goal
 
-Generate a static RSS 2.0 feed (`docs/feed.xml`) where each item is one day’s PastPuzzle
+Generate a static RSS 2.0 feed (`feed.xml`) where each item is one day’s PastPuzzle
 podcast entry and includes:
 
 * `title`: `PastPuzzle – YYYY-MM-DD`
@@ -19,14 +19,13 @@ podcast entry and includes:
 ## Architecture
 
 * No server.
-* GitHub Action runs daily and on manual dispatch.
+* Run locally or via your own scheduler.
 * Workflow steps:
 
   1. scrape “today’s” puzzle from the Supabase RPC endpoint
   2. extract podcast page links and resolve direct audio URLs (WDR Zeitzeichen pages)
   3. update `data/archive.json` (authoritative storage)
-  4. regenerate `docs/feed.xml` from the most recent N days (default 30)
-  5. commit+push changes if anything changed
+  4. regenerate `feed.xml` from the most recent N days (default 30)
 
 ## Deliverables
 
@@ -69,7 +68,7 @@ podcast entry and includes:
 * Implement `src/generate_feed.py`:
 
   + Read archive and select last N days (configurable via env `FEED_DAYS`, default 30).
-  + Generate RSS 2.0 XML to `docs/feed.xml` using `xml.etree.ElementTree` (avoid heavy deps).
+  + Generate RSS 2.0 XML to `feed.xml` using `xml.etree.ElementTree` (avoid heavy deps).
   + Ensure CDATA-safe description and valid RFC-822 `pubDate`.
   + Emit `<enclosure>` entries for direct audio URLs; skip items without audio URLs.
   + Set channel fields: title/link/description/lastBuildDate.
@@ -99,31 +98,11 @@ podcast entry and includes:
   + `lxml` (optional but often stabilizes parsing)
   + `pytest` for tests
 
-### 6) GitHub Actions workflow
+### 6) Scheduling
 
-Create `.github/workflows/update-feed.yml`:
+Use your preferred scheduler (cron, launchd, CI) to run:
 
-* Trigger:
-
-  + `schedule` daily (pick a stable UTC time)
-  + `workflow_dispatch`
-* Permissions:
-
-  + `contents: write`
-* Steps:
-
-  + checkout
-  + install `uv` (official action or curl install)
-  + `uv sync --frozen` (or `uv sync`)
-  + `uv run python -m src.main`
-  + run tests (`uv run pytest`) optionally in a separate job or before commit
-  + commit+push if changes exist (use `github-actions[bot]`)
-
-Safeguards:
-
-* If no changes: exit cleanly without commit.
-* If scrape fails: fail workflow and keep repo unchanged.
-* Optional: open an issue on failure using `actions/github-script`.
+* `uv run python -m src.main`
 
 ### 7) Tests + fixtures
 
@@ -149,11 +128,10 @@ Safeguards:
   + `archive.py`
   + `generate_feed.py`
 * `data/archive.json`
-* `docs/feed.xml`
+* `feed.xml`
 * `tests/fixtures/`
 * `tests/test_parser.py`
 * `pyproject.toml`
-* `.github/workflows/update-feed.yml`
 * `README.md`
 
 ## Output format

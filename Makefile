@@ -1,4 +1,4 @@
-.PHONY: help run test publish
+.PHONY: help run test publish clean
 
 help:
 	@echo "Targets:"
@@ -6,6 +6,7 @@ help:
 	@echo "  run   Run the daily scrape, archive update, and feed generation"
 	@echo "  test  Install test deps and run pytest"
 	@echo "  publish  Copy docs/feed.xml to PUBLISH_DIR"
+	@echo "  clean  Remove build outputs"
 
 run:
 	uv run python -m src.main
@@ -24,4 +25,7 @@ publish: run
 		exit 1; \
 	fi; \
 	mkdir -p "$$PUBLISH_DIR_VALUE"; \
-	cp docs/feed.xml "$$PUBLISH_DIR_VALUE/"
+	cp feed.xml "$$PUBLISH_DIR_VALUE/"
+
+clean:
+	@rm -f feed.xml data/archive.json

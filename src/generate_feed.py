@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from .archive import load_archive
 
 
-FEED_PATH = Path("docs/feed.xml")
+FEED_PATH = Path("feed.xml")
 ITUNES_NS = "http://www.itunes.com/dtds/podcast-1.0.dtd"
 PODCAST_NS = "https://podcastindex.org/namespace/1.0"
 ATOM_NS = "http://www.w3.org/2005/Atom"

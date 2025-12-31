@@ -5,7 +5,7 @@
 Current status: GitHub Actions runs may fail with HTTP 401 when calling the Supabase
 endpoint, even though the same credentials work locally. This appears to be an
 environment-specific restriction (likely IP/WAF or policy behavior) rather than a code
-issue. Until that is resolved, the scheduled workflow may not update `docs/feed.xml` in CI.
+issue. Until that is resolved, the scheduled workflow may not update `feed.xml` in CI.
 
 ## Getting API credentials
 
@@ -23,7 +23,7 @@ Do not commit these values; treat them as secrets.
 ## About 
 
 Generates a static RSS 2.0 feed for https://www.pastpuzzle.de/ by scraping the daily puzzle,
-storing the results in a local archive, and emitting `docs/feed.xml` with podcast enclosures
+storing the results in a local archive, and emitting `feed.xml` with podcast enclosures
 resolved from the podcast tip pages.
 
 ## Local setup
@@ -41,7 +41,7 @@ make test
 make publish
 ```
 
-The `publish` target copies `docs/feed.xml` to `PUBLISH_DIR` (read from the environment
+The `publish` target copies `feed.xml` to `PUBLISH_DIR` (read from the environment
 or `.env`).
 
 To run tests directly:
@@ -65,40 +65,20 @@ python-dotenv) for local runs. See `.env.example` for a template.
 - `PASTPUZZLE_AUTHORIZATION`: bearer token for endpoints that require `authorization` (defaults to API key in CI)
 - `PASTPUZZLE_RESOLVE_AUDIO`: set to `0` to skip resolving podcast pages to audio URLs
 - `PASTPUZZLE_AUDIO_REQUIRED`: set to `1` to fail when audio URLs are missing
-- `FEED_URL`: public URL to `docs/feed.xml` for atom:link self
+- `FEED_URL`: public URL to `feed.xml` for atom:link self
 - `PODCAST_AUTHOR`: author name for iTunes metadata
 - `PODCAST_SUMMARY`: podcast summary/description (keep > 50 characters)
 - `PODCAST_LANGUAGE`: language code (default: de)
 - `PODCAST_CATEGORY`: iTunes category (default: History)
 - `PODCAST_EXPLICIT`: iTunes explicit flag (default: no)
-- `PODCAST_IMAGE_URL`: square cover art (1400-3000 px)
+- `PODCAST_IMAGE_URL`: square cover art URL (1400-3000 px)
 - `TIMEZONE`: only UTC is supported (default: UTC)
+
+The repo includes a placeholder image at `docs/cover.png`. Host your cover art somewhere
+public and set `PODCAST_IMAGE_URL` to that URL.
 
 Example:
 
 ```bash
 FEED_DAYS=14 uv run python -m src.main
 ```
-
-## GitHub Actions
-
-The workflow runs daily on a UTC schedule and on manual dispatch. It scrapes the puzzle,
-updates `data/archive.json`, regenerates `docs/feed.xml`, runs tests, and commits changes if
-anything changed.
-
-For GitHub Actions, add these repository secrets so the workflow can call the Supabase
-endpoint:
-
-- `PASTPUZZLE_JSON_URL`
-- `PASTPUZZLE_HEADERS` (optional JSON string for extra headers)
-- `PASTPUZZLE_API_KEY`
-- `PASTPUZZLE_AUTHORIZATION`
-
-## GitHub Pages (optional)
-
-The feed is written to `docs/feed.xml` for GitHub Pages. Enable Pages on the `main`
-branch and point it at the `/docs` folder. Adjust `PASTPUZZLE_URL` if you need the
-published URL in the feed.
-
-The repo includes a placeholder cover art at `docs/cover.png`. Replace it with your own
-1400x1400 (or larger) square image and update `PODCAST_IMAGE_URL` if you change the path.

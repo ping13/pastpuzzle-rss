@@ -10,3 +10,4 @@ wheels/
 .venv
 .env
 /publish/
+/.DS_Store
