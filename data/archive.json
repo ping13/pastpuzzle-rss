@@ -19,7 +19,8 @@
         "audio_url": "https://ondemand-mp3.dradio.de/file/dradio/2021/01/04/deutschlandfunknova_die_germanen_20210104_bacce3c1.mp3",
         "content_type": "audio/mpeg",
         "length": 48441787,
-        "title": "Germanien Barbaren gegen R\u00f6mer - die Varusschlacht"
+        "title": "Germanien Barbaren gegen R\u00f6mer - die Varusschlacht",
+        "pub_date": "2020-12-30"
       }
     ],
     "source_url": "https://shktoswxcezxdkncmskf.supabase.co/rest/v1/rpc/get_puzzle_of_the_day"
