@@ -1,5 +1,7 @@
 # PastPuzzle RSS
 
+WARNING: This project is experimental and may change or break without notice.
+
 Generates a static RSS 2.0 feed for https://www.pastpuzzle.de/ by scraping the daily puzzle,
 storing the results in a local archive, and emitting `docs/feed.xml` with podcast enclosures
 resolved from the podcast tip pages.
