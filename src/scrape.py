@@ -147,20 +147,24 @@ def _parse_header_env(raw_headers: str) -> dict[str, str]:
             except json.JSONDecodeError:
                 continue
         if isinstance(parsed, dict):
-            return {str(k): str(v) for k, v in parsed.items()}
+            return {_normalize_header_name(str(k)): str(v) for k, v in parsed.items()}
 
     parsed_pairs: dict[str, str] = {}
     for part in re.split(r",\s*|\n+", raw):
         if not part.strip() or ":" not in part:
             continue
         key, value = part.split(":", 1)
-        parsed_pairs[key.strip()] = value.strip().strip("\"'")
+        parsed_pairs[_normalize_header_name(key.strip())] = value.strip().strip("\"'")
     if parsed_pairs:
         return parsed_pairs
 
     raise ValueError(
         "PASTPUZZLE_HEADERS must be valid JSON or key:value pairs."
     )
+
+
+def _normalize_header_name(name: str) -> str:
+    return name.strip().strip("\"'")
 
 
 def _discover_json_url(html: str, base_url: str) -> Optional[str]:
