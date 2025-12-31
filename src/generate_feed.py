@@ -88,16 +88,13 @@ def generate_feed(archive_path: Path = Path("data/archive.json")) -> str:
 
             description_text = _format_description(record, podcast)
             description_element = ET.SubElement(item, "description")
-            description_element.text = f"<![CDATA[{description_text}]]>"
+            description_element.text = description_text
             ET.SubElement(item, f"{{{ITUNES_NS}}}summary").text = description_text
             ET.SubElement(item, f"{{{ITUNES_NS}}}author").text = author
             ET.SubElement(item, f"{{{ITUNES_NS}}}explicit").text = explicit
 
     xml_bytes = ET.tostring(rss, encoding="utf-8", xml_declaration=True)
     xml_text = xml_bytes.decode("utf-8")
-    xml_text = xml_text.replace("&lt;![CDATA[", "<![CDATA[")
-    xml_text = xml_text.replace("]]>&gt;", "]]>")
-    xml_text = xml_text.replace("]]&gt;", "]]>")
     xml_text = xml_text + "\n"
     return xml_text
 
