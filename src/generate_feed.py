@@ -37,15 +37,7 @@ def generate_feed(archive_path: Path = Path("data/archive.json")) -> str:
     if not image_url and selected:
         image_url = selected[-1].get("cover_image") or ""
 
-    rss = ET.Element(
-        "rss",
-        version="2.0",
-        attrib={
-            f"xmlns:itunes": ITUNES_NS,
-            f"xmlns:podcast": PODCAST_NS,
-            f"xmlns:atom": ATOM_NS,
-        },
-    )
+    rss = ET.Element("rss", version="2.0")
     channel = ET.SubElement(rss, "channel")
     ET.SubElement(channel, "title").text = "PastPuzzle"
     ET.SubElement(channel, "link").text = base_url
