@@ -96,9 +96,12 @@ def _build_headers() -> dict[str, str]:
     raw_headers = os.getenv("PASTPUZZLE_HEADERS")
     if raw_headers:
         extra_headers = _parse_header_env(raw_headers)
-        extra_headers.pop("authorization", None)
-        extra_headers.pop("Authorization", None)
-        extra_headers.pop("apikey", None)
+        api_key = os.getenv("PASTPUZZLE_API_KEY")
+        authorization = os.getenv("PASTPUZZLE_AUTHORIZATION")
+        if api_key or authorization:
+            extra_headers.pop("authorization", None)
+            extra_headers.pop("Authorization", None)
+            extra_headers.pop("apikey", None)
         headers.update(extra_headers)
     api_key = os.getenv("PASTPUZZLE_API_KEY")
     authorization = os.getenv("PASTPUZZLE_AUTHORIZATION")
