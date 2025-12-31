@@ -1,6 +1,26 @@
 # PastPuzzle RSS
 
-WARNING: This project is experimental and may change or break without notice.
+## Experimental, not working at the moment
+
+Current status: GitHub Actions runs may fail with HTTP 401 when calling the Supabase
+endpoint, even though the same credentials work locally. This appears to be an
+environment-specific restriction (likely IP/WAF or policy behavior) rather than a code
+issue. Until that is resolved, the scheduled workflow may not update `docs/feed.xml` in CI.
+
+## Getting API credentials
+
+The Supabase RPC endpoint requires headers that are easiest to capture from your browser:
+
+1) Log in to https://www.pastpuzzle.de/ and solve the daily puzzle.
+2) Open your browser DevTools (Network tab) and filter for `get_puzzle_of_the_day`.
+3) Select the request and copy the values for `apikey` and `authorization` (Bearer token),
+   plus any required headers like `Origin`, `Referer`, and `content-profile`.
+4) Put those values into your `.env` (or GitHub Actions secrets) as `PASTPUZZLE_API_KEY`,
+   `PASTPUZZLE_AUTHORIZATION`, and optionally `PASTPUZZLE_HEADERS`.
+
+Do not commit these values; treat them as secrets.
+
+## About 
 
 Generates a static RSS 2.0 feed for https://www.pastpuzzle.de/ by scraping the daily puzzle,
 storing the results in a local archive, and emitting `docs/feed.xml` with podcast enclosures
@@ -39,7 +59,6 @@ python-dotenv) for local runs. See `.env.example` for a template.
 - `PASTPUZZLE_JSON_BODY`: JSON object string for POST bodies
 - `PASTPUZZLE_API_KEY`: API key for endpoints that require `apikey`
 - `PASTPUZZLE_AUTHORIZATION`: bearer token for endpoints that require `authorization` (defaults to API key in CI)
-- `PASTPUZZLE_HEADERS`: JSON object string for extra headers
 - `PASTPUZZLE_RESOLVE_AUDIO`: set to `0` to skip resolving podcast pages to audio URLs
 - `PASTPUZZLE_AUDIO_REQUIRED`: set to `1` to fail when audio URLs are missing
 - `FEED_URL`: public URL to `docs/feed.xml` for atom:link self
