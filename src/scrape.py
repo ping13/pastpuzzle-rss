@@ -382,14 +382,14 @@ def _extract_pub_date(html: str) -> Optional[str]:
     soup = BeautifulSoup(html, "lxml")
     meta = soup.find("meta", attrs={"property": "article:published_time"})
     if meta and meta.get("content"):
-        match = re.search(r"(\\d{4}-\\d{2}-\\d{2})", meta["content"])
+        match = re.search(r"(\d{4}-\d{2}-\d{2})", meta["content"])
         if match:
             return match.group(1)
     time_tag = soup.find("time")
     if time_tag:
         text = time_tag.get("datetime") or time_tag.get_text(" ", strip=True)
         if text:
-            match = re.search(r"(\\d{4}-\\d{2}-\\d{2})", text)
+            match = re.search(r"(\d{4}-\d{2}-\d{2})", text)
             if match:
                 return match.group(1)
     return None
