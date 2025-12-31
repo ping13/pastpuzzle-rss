@@ -18,9 +18,9 @@ jobs:
       PASTPUZZLE_JSON_URL: ${{ secrets.PASTPUZZLE_JSON_URL }}
       PASTPUZZLE_JSON_METHOD: "POST"
       PASTPUZZLE_JSON_BODY: "{\"timezoneoffset\":60,\"locale\":\"de\"}"
-      PASTPUZZLE_HEADERS: ${{ secrets.PASTPUZZLE_HEADERS }}
+      PASTPUZZLE_HEADERS: '{"content-profile":"public","x-client-info":"supabase-js-web/2.57.4"}'
       PASTPUZZLE_API_KEY: ${{ secrets.PASTPUZZLE_API_KEY }}
-      PASTPUZZLE_AUTHORIZATION: ${{ secrets.PASTPUZZLE_AUTHORIZATION }}
+      PASTPUZZLE_AUTHORIZATION: ${{ secrets.PASTPUZZLE_AUTHORIZATION || secrets.PASTPUZZLE_API_KEY }}
       PASTPUZZLE_RESOLVE_AUDIO: "1"
       PASTPUZZLE_AUDIO_REQUIRED: "0"
     steps:
