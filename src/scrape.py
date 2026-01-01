@@ -313,7 +313,15 @@ def _parse_supabase_payload(payload: Any, source_url: str) -> Optional[dict]:
         if link:
             podcast_links.append(link)
     if not podcast_links:
-        raise ValueError("JSON parsing failed: no podcast tips with links found.")
+        types = [
+            tip.get("type")
+            for tip in tips
+            if isinstance(tip, dict) and tip.get("type") is not None
+        ]
+        raise ValueError(
+            "JSON parsing failed: no podcast tips with links found. "
+            f"Tip types: {types}"
+        )
 
     date_value = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     answer_year = payload.get("year")
@@ -374,6 +382,8 @@ def _extract_audio_url(html: str) -> Optional[str]:
                 return src
     for selector in [
         ("meta", {"property": "og:audio"}),
+        ("meta", {"property": "og:audio:secure_url"}),
+        ("meta", {"property": "og:audio:url"}),
         ("meta", {"name": "twitter:player:stream"}),
     ]:
         element = soup.find(selector[0], attrs=selector[1])
@@ -387,9 +397,15 @@ def _extract_audio_url(html: str) -> Optional[str]:
         audio_url = _find_audio_url_in_json(payload)
         if audio_url:
             return audio_url
+    link = soup.find("link", attrs={"rel": "alternate", "type": "audio/mpeg"})
+    if link and link.get("href"):
+        return link["href"]
     link = soup.find("link", rel="audio")
     if link and link.get("href"):
         return link["href"]
+    audio_link = _extract_audio_url_from_links(soup)
+    if audio_link:
+        return audio_link
     match = re.search(r"https?://[^\"'\\s>]+\\.(mp3|m4a|aac|ogg|wav)", html)
     if match:
         return match.group(0)
@@ -423,6 +439,20 @@ def _extract_wdr_audio_url(html: str) -> Optional[str]:
             return href
     match = re.search(r"https?://wdrmedien-a\\.akamaihd\\.net/[^\"'\\s>]+", html)
     return match.group(0) if match else None
+
+
+def _extract_audio_url_from_links(soup: BeautifulSoup) -> Optional[str]:
+    keywords = ("audio", "download", "herunterladen", "podcast")
+    for link in soup.find_all("a"):
+        href = link.get("href", "")
+        if not href:
+            continue
+        if not _looks_like_audio_url(href):
+            continue
+        text = link.get_text(" ", strip=True).lower()
+        if any(keyword in text for keyword in keywords):
+            return href
+    return None
 
 
 def _normalize_audio_url(url: str, page_url: str) -> str:

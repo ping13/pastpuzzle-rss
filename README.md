@@ -1,11 +1,8 @@
 # PastPuzzle RSS
 
-## Experimental, not working at the moment
+## Experimental
 
-Current status: GitHub Actions runs may fail with HTTP 401 when calling the Supabase
-endpoint, even though the same credentials work locally. This appears to be an
-environment-specific restriction (likely IP/WAF or policy behavior) rather than a code
-issue. Until that is resolved, the scheduled workflow may not update `feed.xml` in CI.
+This project is experimental and may change or break without notice.
 
 ## Getting API credentials
 

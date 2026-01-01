@@ -41,6 +41,12 @@ def test_extract_audio_url():
     assert audio_url == "https://cdn.example.com/audio/pastpuzzle-episode.mp3"
 
 
+def test_extract_audio_url_from_download_link():
+    html = (FIXTURES / "podcast_page_download.html").read_text(encoding="utf-8")
+    audio_url = _extract_audio_url(html)
+    assert audio_url == "https://cdn.example.com/audio/secure-episode.mp3"
+
+
 def test_parse_wdr_podcast_page():
     html = (FIXTURES / "wdr_zeitzeichen.html").read_text(encoding="utf-8")
     parsed = _parse_podcast_page(
