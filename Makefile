@@ -46,7 +46,10 @@ publish: run
 		exit 1; \
 	fi; \
 	mkdir -p "$$PUBLISH_DIR_VALUE"; \
-	cp data/feed.xml "$$PUBLISH_DIR_VALUE/"
+	cp data/feed.xml "$$PUBLISH_DIR_VALUE/"; \
+	if [ -f docs/cover.png ]; then \
+		cp docs/cover.png "$$PUBLISH_DIR_VALUE/"; \
+	fi
 
 clean:
 	@rm -f data/feed.xml
