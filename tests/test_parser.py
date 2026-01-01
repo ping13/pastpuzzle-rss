@@ -47,6 +47,15 @@ def test_extract_audio_url_from_download_link():
     assert audio_url == "https://cdn.example.com/audio/secure-episode.mp3"
 
 
+def test_parse_supabase_non_audio_fixture():
+    payload = json.loads(
+        (FIXTURES / "pastpuzzle_video.json").read_text(encoding="utf-8")
+    )
+    record = _parse_json_payload(payload, "https://www.pastpuzzle.de/")
+    assert record["events"] == []
+    assert len(record["extras"]) == 2
+
+
 def test_parse_wdr_podcast_page():
     html = (FIXTURES / "wdr_zeitzeichen.html").read_text(encoding="utf-8")
     parsed = _parse_podcast_page(

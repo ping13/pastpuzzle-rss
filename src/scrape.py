@@ -299,6 +299,7 @@ def _parse_supabase_payload(payload: Any, source_url: str) -> Optional[dict]:
     if not isinstance(tips, list):
         raise ValueError("JSON parsing failed: expected tips to be a list.")
     podcast_links = []
+    extras = []
     cover_image = None
     for tip in tips:
         if not isinstance(tip, dict):
@@ -308,11 +309,20 @@ def _parse_supabase_payload(payload: Any, source_url: str) -> Optional[dict]:
             if image_url:
                 cover_image = image_url
         if tip.get("type") != "podcast":
+            link = tip.get("link")
+            if link:
+                extras.append(
+                    {
+                        "page_url": link,
+                        "title": tip.get("title"),
+                        "tip_type": tip.get("type"),
+                    }
+                )
             continue
         link = tip.get("link")
         if link:
             podcast_links.append(link)
-    if not podcast_links:
+    if not podcast_links and not extras:
         types = [
             tip.get("type")
             for tip in tips
@@ -332,6 +342,7 @@ def _parse_supabase_payload(payload: Any, source_url: str) -> Optional[dict]:
         "events": podcast_links,
         "answer_year": parsed_answer,
         "podcasts": [{"page_url": link} for link in podcast_links],
+        "extras": extras,
         "cover_image": cover_image,
         "source_url": source_url,
     }

@@ -69,6 +69,7 @@ python-dotenv) for local runs. See `.env.example` for a template.
 - `PODCAST_CATEGORY`: iTunes category (default: History)
 - `PODCAST_EXPLICIT`: iTunes explicit flag (default: no)
 - `PODCAST_IMAGE_URL`: square cover art URL (1400-3000 px)
+- `INCLUDE_NON_AUDIO`: set to `1` to emit non-audio tips as RSS items
 - `TIMEZONE`: only UTC is supported (default: UTC)
 
 The repo includes a placeholder image at `docs/cover.png`. Host your cover art somewhere

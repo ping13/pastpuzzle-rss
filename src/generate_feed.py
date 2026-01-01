@@ -25,6 +25,7 @@ def generate_feed(archive_path: Path = Path("data/archive.json")) -> str:
     feed_days = int(os.getenv("FEED_DAYS", "30"))
     base_url = os.getenv("PASTPUZZLE_URL", "https://www.pastpuzzle.de/")
     feed_url = os.getenv("FEED_URL", "")
+    include_non_audio = os.getenv("INCLUDE_NON_AUDIO", "0") in {"1", "true", "yes"}
     author = os.getenv("PODCAST_AUTHOR", "PastPuzzle")
     summary = os.getenv(
         "PODCAST_SUMMARY",
@@ -67,29 +68,54 @@ def generate_feed(archive_path: Path = Path("data/archive.json")) -> str:
     for record in selected:
         date_value = record["date"]
         podcasts = _select_podcasts(record)
-        for index, podcast in enumerate(podcasts, start=1):
+        extras = _select_extras(record) if include_non_audio else []
+        item_counter = 0
+        for podcast in podcasts:
             enclosure_url = podcast.get("audio_url")
-            if not enclosure_url:
+            if not enclosure_url and not include_non_audio:
                 continue
+            item_counter += 1
             item = ET.SubElement(channel, "item")
-            title_suffix = f" Podcast {index}" if len(podcasts) > 1 else ""
+            title_suffix = f" Podcast {item_counter}" if len(podcasts) + len(extras) > 1 else ""
             item_title = podcast.get("title") or f"PastPuzzle – {date_value}{title_suffix}"
             ET.SubElement(item, "title").text = item_title
             ET.SubElement(item, "link").text = (
                 podcast.get("page_url") or record.get("source_url") or base_url
             )
-            guid_suffix = f":{index}" if len(podcasts) > 1 else ""
+            guid_suffix = f":{item_counter}" if len(podcasts) + len(extras) > 1 else ""
             ET.SubElement(item, "guid").text = f"pastpuzzle:{date_value}{guid_suffix}"
             pub_date_value = podcast.get("pub_date") or date_value
             pub_date = datetime.fromisoformat(pub_date_value).replace(tzinfo=timezone.utc)
             ET.SubElement(item, "pubDate").text = _format_rfc822(pub_date)
 
-            enclosure = ET.SubElement(item, "enclosure")
-            enclosure.set("url", enclosure_url)
-            enclosure.set("length", str(podcast.get("length", 0)))
-            enclosure.set("type", podcast.get("content_type", "audio/mpeg"))
+            if enclosure_url:
+                enclosure = ET.SubElement(item, "enclosure")
+                enclosure.set("url", enclosure_url)
+                enclosure.set("length", str(podcast.get("length", 0)))
+                enclosure.set("type", podcast.get("content_type", "audio/mpeg"))
 
             description_text = _format_description(record, podcast)
+            description_element = ET.SubElement(item, "description")
+            description_element.text = description_text
+            ET.SubElement(item, f"{{{ITUNES_NS}}}summary").text = description_text
+            ET.SubElement(item, f"{{{ITUNES_NS}}}author").text = author
+            ET.SubElement(item, f"{{{ITUNES_NS}}}explicit").text = explicit
+
+        for extra in extras:
+            item_counter += 1
+            item = ET.SubElement(channel, "item")
+            title_suffix = f" Item {item_counter}" if len(podcasts) + len(extras) > 1 else ""
+            extra_title = extra.get("title") or f"PastPuzzle – {date_value}{title_suffix}"
+            ET.SubElement(item, "title").text = extra_title
+            ET.SubElement(item, "link").text = (
+                extra.get("page_url") or record.get("source_url") or base_url
+            )
+            guid_suffix = f":{item_counter}" if len(podcasts) + len(extras) > 1 else ""
+            ET.SubElement(item, "guid").text = f"pastpuzzle:{date_value}{guid_suffix}"
+            pub_date = datetime.fromisoformat(date_value).replace(tzinfo=timezone.utc)
+            ET.SubElement(item, "pubDate").text = _format_rfc822(pub_date)
+
+            description_text = _format_description(record, extra)
             description_element = ET.SubElement(item, "description")
             description_element.text = description_text
             ET.SubElement(item, f"{{{ITUNES_NS}}}summary").text = description_text
@@ -125,8 +151,18 @@ def _select_podcasts(record: dict[str, Any]) -> list[dict[str, Any]]:
     return [{"page_url": event} for event in events if isinstance(event, str)]
 
 
+def _select_extras(record: dict[str, Any]) -> list[dict[str, Any]]:
+    extras = record.get("extras")
+    if isinstance(extras, list) and extras:
+        return [extra for extra in extras if isinstance(extra, dict)]
+    return []
+
+
 def _format_description(record: dict[str, Any], podcast: dict[str, Any]) -> str:
     lines = []
+    tip_type = podcast.get("tip_type")
+    if tip_type:
+        lines.append(f"Type: {tip_type}")
     page_url = podcast.get("page_url")
     if page_url:
         lines.append(page_url)

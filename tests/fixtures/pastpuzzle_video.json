@@ -1,0 +1,24 @@
+{
+  "id": 679,
+  "year": 1931,
+  "tips": [
+    {
+      "link": "https://www.youtube.com/watch?v=video1",
+      "text": "Video hint one",
+      "type": "video",
+      "image": "https://example.com/video1.jpg",
+      "title": "Video hint one",
+      "copyright": null
+    },
+    {
+      "link": "https://www.youtube.com/watch?v=video2",
+      "text": "Video hint two",
+      "type": "video",
+      "image": "https://example.com/video2.jpg",
+      "title": "Video hint two",
+      "copyright": null
+    }
+  ],
+  "name": "417",
+  "locale": "de"
+}
