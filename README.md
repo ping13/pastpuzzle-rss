@@ -51,6 +51,16 @@ uv run pytest
 You can also place environment overrides in a `.env` file (loaded automatically via
 python-dotenv) for local runs. See `.env.example` for a template.
 
+## Enriching the archive
+
+To enrich an existing archive entry using a quiz ID, use the quiz endpoint:
+
+```bash
+uv run python -m src.main --quiz-id 229 --quiz-date 2024-06-12
+```
+
+This merges the quiz payload into the record for the given date.
+
 ## Configuration
 
 - `FEED_DAYS`: number of days to include in the feed (default: 30)
@@ -58,6 +68,9 @@ python-dotenv) for local runs. See `.env.example` for a template.
 - `PASTPUZZLE_JSON_URL`: override JSON endpoint for scraping
 - `PASTPUZZLE_JSON_METHOD`: `GET` or `POST` (default: `GET`)
 - `PASTPUZZLE_JSON_BODY`: JSON object string for POST bodies
+- `PASTPUZZLE_QUIZ_URL`: quiz endpoint for fetching by ID
+- `PASTPUZZLE_QUIZ_METHOD`: `GET` or `POST` (default: `POST`)
+- `PASTPUZZLE_QUIZ_BODY`: JSON object string for quiz POST bodies (must include `id`)
 - `PASTPUZZLE_API_KEY`: API key for endpoints that require `apikey`
 - `PASTPUZZLE_AUTHORIZATION`: bearer token for endpoints that require `authorization` (defaults to API key in CI)
 - `PASTPUZZLE_RESOLVE_AUDIO`: set to `0` to skip resolving podcast pages to audio URLs

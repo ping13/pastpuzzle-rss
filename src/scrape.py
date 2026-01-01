@@ -3,15 +3,15 @@ import os
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from urllib.parse import urljoin, urlparse
 from typing import Any, Optional
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
 
 
 DEFAULT_BASE_URL = "https://www.pastpuzzle.de/"
+DEFAULT_QUIZ_URL = "https://shktoswxcezxdkncmskf.supabase.co/rest/v1/rpc/get_quiz"
 
 
 @dataclass
@@ -69,6 +69,22 @@ def fetch_puzzle(date: Optional[str] = None) -> dict:
     return record
 
 
+def fetch_quiz(quiz_id: str, date_override: Optional[str] = None) -> dict:
+    quiz_url = os.getenv("PASTPUZZLE_QUIZ_URL", DEFAULT_QUIZ_URL)
+    if not quiz_url:
+        raise ValueError("PASTPUZZLE_QUIZ_URL must be set to fetch quiz data.")
+    payload = _fetch_quiz_payload(quiz_url, quiz_id)
+    record = _parse_json_payload(
+        payload,
+        source_url=quiz_url,
+        date_override=date_override,
+        quiz_id=quiz_id,
+        require_date=date_override is None,
+    )
+    _resolve_podcast_audio(record)
+    return record
+
+
 def _apply_date_to_url(url: str, date: Optional[str]) -> str:
     if not date:
         return url
@@ -79,19 +95,30 @@ def _apply_date_to_url(url: str, date: Optional[str]) -> str:
 
 def _fetch_json_payload(url: str, date: Optional[str]) -> Any:
     headers = _build_headers()
+    method = os.getenv("PASTPUZZLE_JSON_METHOD", "GET").upper()
+    body = _build_body(date)
+    return _fetch_payload(url, method, headers, body)
+
+
+def _fetch_quiz_payload(url: str, quiz_id: str) -> Any:
+    headers = _build_headers()
+    method = os.getenv("PASTPUZZLE_QUIZ_METHOD", "POST").upper()
+    body = _build_quiz_body(quiz_id)
+    return _fetch_payload(url, method, headers, body)
+
+
+def _fetch_payload(url: str, method: str, headers: dict[str, str], body: dict[str, Any]) -> Any:
     if os.getenv("PASTPUZZLE_DEBUG", "").lower() in {"1", "true", "yes"}:
         print(
-            f"DEBUG request method={os.getenv('PASTPUZZLE_JSON_METHOD','GET').upper()} url={url}"
+            f"DEBUG request method={method} url={url}"
         )
         print(f"DEBUG headers keys={sorted(headers.keys())}")
         print(
             f"DEBUG apikey length={len(headers.get('apikey',''))} authorization length={len(headers.get('authorization',''))}"
         )
-    method = os.getenv("PASTPUZZLE_JSON_METHOD", "GET").upper()
     if method not in {"GET", "POST"}:
-        raise ValueError("PASTPUZZLE_JSON_METHOD must be GET or POST.")
+        raise ValueError("Request method must be GET or POST.")
     if method == "POST":
-        body = _build_body(date)
         response = httpx.post(url, json=body, headers=headers, timeout=30)
     else:
         response = httpx.get(url, headers=headers, timeout=30)
@@ -104,12 +131,21 @@ def _build_headers() -> dict[str, str]:
     raw_headers = os.getenv("PASTPUZZLE_HEADERS")
     if raw_headers:
         extra_headers = _parse_header_env(raw_headers)
+        had_raw_auth = "authorization" in extra_headers
+        had_raw_apikey = "apikey" in extra_headers
         api_key = os.getenv("PASTPUZZLE_API_KEY")
         authorization = os.getenv("PASTPUZZLE_AUTHORIZATION")
         if api_key or authorization:
             extra_headers.pop("authorization", None)
             extra_headers.pop("apikey", None)
         headers.update(extra_headers)
+        if os.getenv("PASTPUZZLE_DEBUG", "").lower() in {"1", "true", "yes"}:
+            print(
+                "DEBUG header overrides: "
+                f"raw_auth={had_raw_auth} "
+                f"raw_apikey={had_raw_apikey} "
+                f"env_auth={ bool(authorization) } env_apikey={ bool(api_key) }"
+            )
     api_key = api_key.strip().strip("\"'") if api_key else None
     authorization = authorization.strip().strip("\"'") if authorization else None
     if api_key:
@@ -135,6 +171,21 @@ def _build_body(date: Optional[str]) -> dict[str, Any]:
             raise ValueError("PASTPUZZLE_JSON_BODY must be a JSON object.")
         return body
     return {"date": date} if date else {}
+
+
+def _build_quiz_body(quiz_id: str) -> dict[str, Any]:
+    raw_body = os.getenv("PASTPUZZLE_QUIZ_BODY")
+    if raw_body:
+        try:
+            body = json.loads(raw_body)
+        except json.JSONDecodeError as exc:
+            raise ValueError("PASTPUZZLE_QUIZ_BODY must be valid JSON.") from exc
+        if not isinstance(body, dict):
+            raise ValueError("PASTPUZZLE_QUIZ_BODY must be a JSON object.")
+    else:
+        body = {}
+    body.setdefault("id", str(quiz_id))
+    return body
 
 
 def _parse_header_env(raw_headers: str) -> dict[str, str]:
@@ -256,8 +307,20 @@ def _extract_date_from_dom(soup: BeautifulSoup) -> Optional[str]:
     return None
 
 
-def _parse_json_payload(payload: Any, source_url: str) -> dict:
-    supabase_record = _parse_supabase_payload(payload, source_url)
+def _parse_json_payload(
+    payload: Any,
+    source_url: str,
+    date_override: Optional[str] = None,
+    quiz_id: Optional[str] = None,
+    require_date: bool = False,
+) -> dict:
+    supabase_record = _parse_supabase_payload(
+        payload,
+        source_url,
+        date_override=date_override,
+        quiz_id=quiz_id,
+        require_date=require_date,
+    )
     if supabase_record:
         return supabase_record
 
@@ -290,7 +353,13 @@ def _parse_json_payload(payload: Any, source_url: str) -> dict:
     }
 
 
-def _parse_supabase_payload(payload: Any, source_url: str) -> Optional[dict]:
+def _parse_supabase_payload(
+    payload: Any,
+    source_url: str,
+    date_override: Optional[str] = None,
+    quiz_id: Optional[str] = None,
+    require_date: bool = False,
+) -> Optional[dict]:
     if not isinstance(payload, dict):
         return None
     if "tips" not in payload or "year" not in payload:
@@ -333,11 +402,20 @@ def _parse_supabase_payload(payload: Any, source_url: str) -> Optional[dict]:
             f"Tip types: {types}"
         )
 
-    date_value = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    date_value = None
+    payload_date = payload.get("date")
+    if isinstance(payload_date, str):
+        date_value = payload_date[:10]
+    if date_override:
+        date_value = date_override
+    if require_date and not date_value:
+        raise ValueError("Quiz payload missing date; pass --quiz-date.")
+    if not date_value:
+        date_value = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     answer_year = payload.get("year")
     parsed_answer = answer_year if isinstance(answer_year, int) else None
 
-    return {
+    record = {
         "date": date_value,
         "events": podcast_links,
         "answer_year": parsed_answer,
@@ -346,6 +424,10 @@ def _parse_supabase_payload(payload: Any, source_url: str) -> Optional[dict]:
         "cover_image": cover_image,
         "source_url": source_url,
     }
+    if quiz_id:
+        record["quiz_id"] = quiz_id
+        record["quiz_source_url"] = source_url
+    return record
 
 
 def _resolve_podcast_audio(record: dict[str, Any]) -> None:
