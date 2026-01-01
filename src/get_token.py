@@ -145,7 +145,8 @@ def main(write_env: bool = False) -> None:
         print(access_token)
 
         # Persist session for later tests
-        context.storage_state(path="pastpuzzle.storage_state.json")
+        os.makedirs("data", exist_ok=True)
+        context.storage_state(path="data/pastpuzzle.storage_state.json")
 
         browser.close()
 

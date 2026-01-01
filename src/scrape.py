@@ -118,12 +118,22 @@ def _fetch_payload(url: str, method: str, headers: dict[str, str], body: dict[st
         )
     if method not in {"GET", "POST"}:
         raise ValueError("Request method must be GET or POST.")
-    if method == "POST":
-        response = httpx.post(url, json=body, headers=headers, timeout=30)
-    else:
-        response = httpx.get(url, headers=headers, timeout=30)
+    response = _send_request(method, url, headers, body)
+    if response.status_code == 401:
+        api_key = headers.get("apikey")
+        auth_header = headers.get("authorization", "")
+        if api_key and auth_header != f"Bearer {api_key}":
+            retry_headers = dict(headers)
+            retry_headers["authorization"] = f"Bearer {api_key}"
+            response = _send_request(method, url, retry_headers, body)
     response.raise_for_status()
     return response.json()
+
+
+def _send_request(method: str, url: str, headers: dict[str, str], body: dict[str, Any]) -> httpx.Response:
+    if method == "POST":
+        return httpx.post(url, json=body, headers=headers, timeout=30)
+    return httpx.get(url, headers=headers, timeout=30)
 
 
 def _build_headers() -> dict[str, str]:
