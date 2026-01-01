@@ -64,12 +64,19 @@ uv run python -m src.main --quiz-id 229 --quiz-date 2024-06-12
 ```
 
 This merges the quiz payload into the record for the given date.
+Merge behavior:
+- List fields (`events`, `podcasts`, `extras`) are merged with de-duplication.
+- Existing `source_url` and `cover_image` are preserved if already set.
+- Empty values are filled from the quiz payload.
 
 To refresh the auth token locally (Playwright required), run:
 
 ```bash
 make token
 ```
+
+`make token` also attempts to detect and persist the Supabase anon key
+(`PASTPUZZLE_API_KEY`) from the app bundle.
 
 ## Configuration
 
@@ -99,6 +106,9 @@ make token
 
 The repo includes a placeholder image at `docs/cover.png`. Host your cover art somewhere
 public and set `PODCAST_IMAGE_URL` to that URL.
+
+Networking notes:
+- Requests retry on transient errors (429/5xx) with short backoff.
 
 Example:
 

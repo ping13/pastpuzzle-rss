@@ -1,8 +1,11 @@
+import base64
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
+from urllib.parse import urljoin
 
 import click
 from playwright.sync_api import sync_playwright
@@ -65,7 +68,7 @@ def _extract_token_from_storage_dump(page) -> str | None:
     "--write-env",
     "write_env",
     is_flag=True,
-    help="Persist the access token into .env as PASTPUZZLE_AUTHORIZATION.",
+    help="Persist tokens into .env as PASTPUZZLE_AUTHORIZATION (and API key if found).",
 )
 def main(write_env: bool = False) -> None:
     load_dotenv()
@@ -140,9 +143,16 @@ def main(write_env: bool = False) -> None:
             _dump_login_debug(page)
             print("Unable to locate access_token in storage.", file=sys.stderr)
             sys.exit(1)
+        api_key = _extract_api_key_from_requests(page)
+        if not api_key:
+            api_key = _extract_api_key_from_storage_dump(page)
+        if not api_key:
+            api_key = _extract_anon_key_from_app(page)
         if write_env:
-            _persist_token_to_env(access_token)
-        print(access_token)
+            _persist_tokens_to_env(access_token, api_key)
+        print(f"PASTPUZZLE_AUTHORIZATION={access_token}")
+        if api_key:
+            print(f"PASTPUZZLE_API_KEY={api_key}")
 
         # Persist session for later tests
         os.makedirs("data", exist_ok=True)
@@ -166,7 +176,7 @@ def _find_locator(page, selectors: list[str], deadline: float):
     return None
 
 
-def _persist_token_to_env(token: str) -> None:
+def _persist_tokens_to_env(token: str, api_key: str | None) -> None:
     env_path = Path(".env")
     lines = []
     if env_path.exists():
@@ -179,7 +189,113 @@ def _persist_token_to_env(token: str) -> None:
             break
     if not updated:
         lines.append(f"PASTPUZZLE_AUTHORIZATION={token}")
+    if api_key:
+        api_updated = False
+        for index, line in enumerate(lines):
+            if line.startswith("PASTPUZZLE_API_KEY="):
+                lines[index] = f"PASTPUZZLE_API_KEY={api_key}"
+                api_updated = True
+                break
+        if not api_updated:
+            lines.append(f"PASTPUZZLE_API_KEY={api_key}")
     env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _extract_api_key_from_requests(page) -> str | None:
+    try:
+        requests = page.context.request._request_storage._requests  # type: ignore[attr-defined]
+    except Exception:
+        return None
+    for request in reversed(requests):
+        headers = request.get("headers", {})
+        api_key = headers.get("apikey") or headers.get("Apikey") or headers.get("APIKEY")
+        if api_key:
+            return api_key
+    return None
+
+
+def _extract_api_key_from_storage_dump(page) -> str | None:
+    try:
+        storage = page.context.storage_state()
+    except Exception:
+        return None
+    for origin in storage.get("origins", []):
+        for item in origin.get("localStorage", []):
+            value = item.get("value", "")
+            if "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" in value:
+                return _first_jwt(value)
+    return None
+
+
+def _first_jwt(text: str) -> str | None:
+    for part in text.split():
+        if part.count(".") == 2 and part.startswith("eyJ"):
+            return part
+    return None
+
+
+def _extract_anon_key_from_app(page) -> str | None:
+    script_urls = _extract_script_urls(page)
+    if not script_urls:
+        return None
+    for script_url in script_urls:
+        try:
+            response = page.request.get(script_url, timeout=15000)
+            if not response.ok:
+                continue
+            text = response.text()
+        except Exception:
+            continue
+        anon_key = _find_anon_key_in_text(text)
+        if anon_key:
+            return anon_key
+    return None
+
+
+def _extract_script_urls(page) -> list[str]:
+    html = page.content()
+    srcs = re.findall(r'<script[^>]+src="([^"]+)"', html)
+    urls = []
+    for src in srcs:
+        urls.append(urljoin(URL, src))
+    return urls
+
+
+def _find_anon_key_in_text(text: str) -> str | None:
+    key_patterns = [
+        r'(?:anon|apikey|supabaseKey)["\']\s*[:=]\s*["\'](eyJ[^"\']+)["\']',
+        r'["\']apikey["\']\s*:\s*["\'](eyJ[^"\']+)["\']',
+    ]
+    for pattern in key_patterns:
+        match = re.search(pattern, text)
+        if match:
+            token = match.group(1)
+            if _looks_like_anon_key(token):
+                return token
+    for match in re.findall(r'eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+', text):
+        if _looks_like_anon_key(match):
+            return match
+    return None
+
+
+def _looks_like_anon_key(token: str) -> bool:
+    payload = _decode_jwt_payload(token)
+    if not payload:
+        return False
+    return payload.get("role") == "anon" or payload.get("anon") is True
+
+
+def _decode_jwt_payload(token: str) -> dict[str, object] | None:
+    try:
+        parts = token.split(".")
+        if len(parts) != 3:
+            return None
+        payload = parts[1]
+        padded = payload + "=" * (-len(payload) % 4)
+        decoded = base64.urlsafe_b64decode(padded.encode("utf-8")).decode("utf-8")
+        return json.loads(decoded)
+    except Exception:
+        return None
 
 
 def _iter_frames(page) -> list[object]:

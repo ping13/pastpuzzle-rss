@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -12,6 +13,8 @@ from bs4 import BeautifulSoup
 
 DEFAULT_BASE_URL = "https://www.pastpuzzle.de/"
 DEFAULT_QUIZ_URL = "https://shktoswxcezxdkncmskf.supabase.co/rest/v1/rpc/get_quiz"
+RETRY_STATUS_CODES = {429, 500, 502, 503, 504}
+RETRY_DELAYS = (0, 1, 2)
 
 
 @dataclass
@@ -27,7 +30,7 @@ def discover_source(base_url: str) -> SourceInfo:
     if explicit_json_url:
         return SourceInfo(kind="json", url=explicit_json_url)
 
-    response = httpx.get(base_url, timeout=30)
+    response = _request_with_backoff("GET", base_url)
     response.raise_for_status()
     html = response.text
 
@@ -130,10 +133,40 @@ def _fetch_payload(url: str, method: str, headers: dict[str, str], body: dict[st
     return response.json()
 
 
-def _send_request(method: str, url: str, headers: dict[str, str], body: dict[str, Any]) -> httpx.Response:
+def _send_request(
+    method: str, url: str, headers: dict[str, str], body: dict[str, Any]
+) -> httpx.Response:
     if method == "POST":
-        return httpx.post(url, json=body, headers=headers, timeout=30)
-    return httpx.get(url, headers=headers, timeout=30)
+        return _request_with_backoff("POST", url, headers=headers, json=body)
+    return _request_with_backoff("GET", url, headers=headers)
+
+
+def _request_with_backoff(
+    method: str,
+    url: str,
+    headers: Optional[dict[str, str]] = None,
+    json: Optional[dict[str, Any]] = None,
+) -> httpx.Response:
+    last_exc: Optional[Exception] = None
+    for delay in RETRY_DELAYS:
+        if delay:
+            time.sleep(delay)
+        try:
+            response = httpx.request(method, url, headers=headers, json=json, timeout=30)
+        except httpx.HTTPError as exc:
+            last_exc = exc
+            continue
+        if response.status_code in RETRY_STATUS_CODES:
+            last_exc = httpx.HTTPStatusError(
+                f"Retryable status {response.status_code} for {url}",
+                request=response.request,
+                response=response,
+            )
+            continue
+        return response
+    if last_exc:
+        raise last_exc
+    raise httpx.HTTPError(f"Request failed for {url}")
 
 
 def _build_headers() -> dict[str, str]:
@@ -457,7 +490,7 @@ def _resolve_podcast_audio(record: dict[str, Any]) -> None:
         page_url = podcast.get("page_url")
         if not page_url or podcast.get("audio_url"):
             continue
-        response = httpx.get(page_url, timeout=30)
+        response = _request_with_backoff("GET", page_url)
         response.raise_for_status()
         parsed = _parse_podcast_page(response.text, page_url)
         audio_url = parsed.get("audio_url")
@@ -629,7 +662,7 @@ def _infer_mime_type(url: str) -> str:
 
 def _fetch_content_length(url: str) -> int:
     try:
-        response = httpx.head(url, timeout=30)
+        response = _request_with_backoff("HEAD", url)
         response.raise_for_status()
         length = response.headers.get("content-length")
         return int(length) if length and length.isdigit() else 0
