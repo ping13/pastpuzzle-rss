@@ -25,7 +25,7 @@ publish: run
 		exit 1; \
 	fi; \
 	mkdir -p "$$PUBLISH_DIR_VALUE"; \
-	cp feed.xml "$$PUBLISH_DIR_VALUE/"
+	cp data/feed.xml "$$PUBLISH_DIR_VALUE/"
 
 clean:
-	@rm -f feed.xml data/archive.json
+	@rm -f data/feed.xml

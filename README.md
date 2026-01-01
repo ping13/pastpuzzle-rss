@@ -20,7 +20,7 @@ Do not commit these values; treat them as secrets.
 ## About 
 
 Generates a static RSS 2.0 feed for https://www.pastpuzzle.de/ by scraping the daily puzzle,
-storing the results in a local archive, and emitting `feed.xml` with podcast enclosures
+storing the results in a local archive, and emitting `data/feed.xml` with podcast enclosures
 resolved from the podcast tip pages.
 
 ## Local setup
@@ -38,7 +38,7 @@ make test
 make publish
 ```
 
-The `publish` target copies `feed.xml` to `PUBLISH_DIR` (read from the environment
+The `publish` target copies `data/feed.xml` to `PUBLISH_DIR` (read from the environment
 or `.env`).
 
 To run tests directly:
@@ -62,7 +62,7 @@ python-dotenv) for local runs. See `.env.example` for a template.
 - `PASTPUZZLE_AUTHORIZATION`: bearer token for endpoints that require `authorization` (defaults to API key in CI)
 - `PASTPUZZLE_RESOLVE_AUDIO`: set to `0` to skip resolving podcast pages to audio URLs
 - `PASTPUZZLE_AUDIO_REQUIRED`: set to `1` to fail when audio URLs are missing
-- `FEED_URL`: public URL to `feed.xml` for atom:link self
+- `FEED_URL`: public URL to `data/feed.xml` for atom:link self
 - `PODCAST_AUTHOR`: author name for iTunes metadata
 - `PODCAST_SUMMARY`: podcast summary/description (keep > 50 characters)
 - `PODCAST_LANGUAGE`: language code (default: de)
