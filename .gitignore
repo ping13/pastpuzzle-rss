@@ -14,3 +14,4 @@ data/feed.xml
 /publish/
 /.DS_Store
 /pastpuzzle.storage_state.json
+/data/

@@ -35,6 +35,8 @@ Makefile shortcuts:
 ```bash
 make run
 make test
+make token
+make quiz QUIZ_ID=229 QUIZ_DATE=2025-12-31
 make publish
 ```
 
@@ -61,6 +63,12 @@ uv run python -m src.main --quiz-id 229 --quiz-date 2024-06-12
 
 This merges the quiz payload into the record for the given date.
 
+To refresh the auth token locally (Playwright required):
+
+```bash
+make token
+```
+
 ## Configuration
 
 - `FEED_DAYS`: number of days to include in the feed (default: 30)
@@ -71,6 +79,8 @@ This merges the quiz payload into the record for the given date.
 - `PASTPUZZLE_QUIZ_URL`: quiz endpoint for fetching by ID
 - `PASTPUZZLE_QUIZ_METHOD`: `GET` or `POST` (default: `POST`)
 - `PASTPUZZLE_QUIZ_BODY`: JSON object string for quiz POST bodies (must include `id`)
+- `PASTPUZZLE_USER`: login email for the token refresh helper
+- `PASTPUZZLE_PASS`: login password for the token refresh helper
 - `PASTPUZZLE_API_KEY`: API key for endpoints that require `apikey`
 - `PASTPUZZLE_AUTHORIZATION`: bearer token for endpoints that require `authorization` (defaults to API key in CI)
 - `PASTPUZZLE_RESOLVE_AUDIO`: set to `0` to skip resolving podcast pages to audio URLs
