@@ -1,11 +1,12 @@
-.PHONY: help run test publish clean
+.PHONY: help run test publish clean check
 
 help:
 	@echo "Targets:"
 	@echo "  help  Show this help"
 	@echo "  run   Run the daily scrape, archive update, and feed generation"
 	@echo "  test  Install test deps and run pytest"
-	@echo "  publish  Copy docs/feed.xml to PUBLISH_DIR"
+	@echo "  publish  Copy data/feed.xml to PUBLISH_DIR"
+	@echo "  check  Verify the puzzle endpoint is reachable (no archive/feed writes)"
 	@echo "  clean  Remove build outputs"
 
 run:
@@ -14,6 +15,9 @@ run:
 test:
 	uv sync --group test
 	uv run pytest
+
+check:
+	uv run python -m src.main --check --pretty-json
 
 publish: run
 	@PUBLISH_DIR_VALUE="$$PUBLISH_DIR"; \
