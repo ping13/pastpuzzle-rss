@@ -33,7 +33,7 @@ uv run python -m src.main
 Makefile shortcuts:
 
 ```bash
-make run
+make create-feed
 make test
 make token
 make quiz QUIZ_ID=229 QUIZ_DATE=2025-12-31

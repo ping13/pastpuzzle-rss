@@ -1,10 +1,10 @@
-.PHONY: help run test publish clean check quiz
+.PHONY: help create-feed test publish clean check quiz token
 .PHONY: token
 
 help:
 	@echo "Targets:"
 	@echo "  help  Show this help"
-	@echo "  run   Run the daily scrape, archive update, and feed generation"
+	@echo "  create-feed  Run the daily scrape, archive update, and feed generation"
 	@echo "  test  Install test deps and run pytest"
 	@echo "  publish  Copy data/feed.xml to PUBLISH_DIR"
 	@echo "  check  Verify the puzzle endpoint is reachable (no archive/feed writes)"
@@ -12,7 +12,7 @@ help:
 	@echo "  quiz  Enrich archive by quiz ID (set QUIZ_ID and optional QUIZ_DATE)"
 	@echo "  clean  Remove build outputs"
 
-run:
+create-feed:
 	uv run python -m src.main
 
 test:
@@ -36,7 +36,7 @@ quiz:
 		uv run python -m src.main --quiz-id "$$QUIZ_ID"; \
 	fi
 
-publish: run
+publish: create-feed
 	@PUBLISH_DIR_VALUE="$$PUBLISH_DIR"; \
 	if [ -z "$$PUBLISH_DIR_VALUE" ] && [ -f .env ]; then \
 		PUBLISH_DIR_VALUE=$$(awk -F= '/^PUBLISH_DIR=/{sub(/^PUBLISH_DIR=/,"");print;exit}' .env | sed 's/^\"//;s/\"$$//'); \
