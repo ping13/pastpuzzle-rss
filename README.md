@@ -30,18 +30,20 @@ uv sync
 uv run python -m src.main
 ```
 
-Makefile shortcuts:
+Makefile targets:
 
 ```bash
-make create-feed
-make test
-make token
-make quiz QUIZ_ID=229 QUIZ_DATE=2025-12-31
-make publish
+make create-feed   # scrape -> archive update -> data/feed.xml
+make check         # scrape-only + pretty JSON (no archive/feed writes)
+make test          # install test deps and run pytest
+make token         # refresh auth token and persist to .env
+make quiz QUIZ_ID=229 QUIZ_DATE=2025-12-31  # enrich archive with a quiz ID
+make publish       # copy data/feed.xml (+ docs/cover.png) to PUBLISH_DIR
+make clean         # remove data/feed.xml
 ```
 
-The `publish` target copies `data/feed.xml` to `PUBLISH_DIR` (read from the environment
-or `.env`).
+The `publish` target copies `data/feed.xml` and `docs/cover.png` to `PUBLISH_DIR`
+(read from the environment or `.env`).
 
 To run tests directly:
 
@@ -63,7 +65,7 @@ uv run python -m src.main --quiz-id 229 --quiz-date 2024-06-12
 
 This merges the quiz payload into the record for the given date.
 
-To refresh the auth token locally (Playwright required):
+To refresh the auth token locally (Playwright required), run:
 
 ```bash
 make token
